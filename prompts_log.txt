@@ -14,4 +14,11 @@ Response:
 3. Implemented Middleware for protecting routes and checking superadmin status.
 4. Created the Sign-in page with Google OAuth integration.
 5. Created the /auth/callback route to handle the authentication exchange.
-6. Created the Access Denied page for non-superadmin users.
+6. Created the Access Denied page for non-superadmin users with sign-out capability.
+
+Prompt: Great. Now, I want to create the functionality to CREATE/READ/UPDATE/DELETE images through the images page. Can you create these functionalities and have them reflect in the supabase?
+Response:
+1. Created Server Actions for Image CRUD (Create, Update, Delete).
+2. Refactored Images page to include an interactive client-side ImageGrid.
+3. Added "Add Image" modal and "Edit/Delete" actions on each image card.
+4. Integrated Supabase storage support for image uploads.
