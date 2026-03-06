@@ -22,3 +22,10 @@ Response:
 2. Refactored Images page to include an interactive client-side ImageGrid.
 3. Added "Add Image" modal and "Edit/Delete" actions on each image card.
 4. Integrated Supabase storage support for image uploads.
+5. Added automatic recording of uploader's profile_id and custom deletion confirmation UI.
+
+Prompt: Amazing. I also want to just add a sign out button on all of the pages in the admin web app so the user can sign out
+Response:
+1. Created a reusable SignOutButton component.
+2. Implemented an (admin) route group with a shared Layout.
+3. Added a global navigation header with Dashboard branding, nav links, and the Sign Out button.
