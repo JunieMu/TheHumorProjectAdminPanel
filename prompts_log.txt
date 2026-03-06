@@ -1,0 +1,17 @@
+Prompt: I want to build a web application with NextJS, tailwindcss, and supabase that works as an Admin Panel for showing interesting statistics from my data from the supabase and allows way to look at/manage users/profiles, images, and captions. Can you build an aesthetic interface with background colors FAF4EA that does this. I want a home page that shows off the Admin Dashboard: with interesting statistics from the database. for instance, how many users there are, how many unique types of images, how many captions etc. Below that, I want card style icons that take you to new pages with data about the users in the database (from the profiles table in the supabase), the images in the database (from the images table in the supabase), and the captions in the database (from the captions table in the supabase). Already in this project, I have created the schema.sql file depicting the context for the supabase, and an .env.local file for the keys needed to connect to the supabase. Also just to keep the process more clear, can you keep a running text file containing my prompts and a paraphrased description of the response you took.
+Response: 
+1. Initialized Next.js project with TypeScript and Tailwind CSS.
+2. Configured Tailwind 4 with the custom background color #FAF4EA in globals.css.
+3. Installed @supabase/supabase-js and lucide-react.
+4. Created Supabase client utility.
+5. Implemented the Admin Dashboard (home page) with real-time statistics fetching for Users, Images, and Captions.
+6. Created dedicated management pages for Users (table view), Images (grid view), and Captions (list view with associated data).
+
+Prompt: Since this is an admin panel, I want to create a google oauth flow that allows only signed in users with profiles.is_superadmin==TRUE to access the site. Outside of the pages you just created, I want the first page of the site to be the sign in page (matching the ui of the current app). After clicking the button to sign in, the user should be redirected to the google accounts page for authentication. Then after the user is signed in, if their email doesn't have superadmin access, it should take them to an access denied page. If their email does have superadmin access, it should redirect them to https://secure.almostcrackd.ai/auth/v1/callback (redirect uri) and then redirect them to my site which should be the url of the original page with /auth/callback. Make sure you are redirecting to /auth/callback, not any other route with any other query parameters.
+Response:
+1. Installed @supabase/ssr.
+2. Created server and client Supabase utilities for SSR authentication.
+3. Implemented Middleware for protecting routes and checking superadmin status.
+4. Created the Sign-in page with Google OAuth integration.
+5. Created the /auth/callback route to handle the authentication exchange.
+6. Created the Access Denied page for non-superadmin users.
