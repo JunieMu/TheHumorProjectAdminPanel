@@ -1,10 +1,15 @@
 'use server'
 
 import { createAdminClient } from '@/utils/supabase/admin'
+import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 
 export async function createImage(formData: FormData) {
-  const supabase = createAdminClient()
+  const supabaseAdmin = createAdminClient()
+  const supabaseUser = await createClient()
+  
+  // Get the current user ID for the profile_id field
+  const { data: { user } } = await supabaseUser.auth.getUser()
   
   const url = formData.get('url') as string
   const image_description = formData.get('image_description') as string
@@ -12,7 +17,7 @@ export async function createImage(formData: FormData) {
   const is_common_use = formData.get('is_common_use') === 'on'
   const additional_context = formData.get('additional_context') as string
 
-  const { error } = await supabase
+  const { error } = await supabaseAdmin
     .from('images')
     .insert([{
       url,
@@ -20,6 +25,7 @@ export async function createImage(formData: FormData) {
       is_public,
       is_common_use,
       additional_context,
+      profile_id: user?.id, // Record who uploaded it
       created_datetime_utc: new Date().toISOString()
     }])
 

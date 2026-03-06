@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Image as ImageIcon, Plus, Pencil, Trash2, X, Loader2, Upload, ExternalLink } from 'lucide-react'
+import { Image as ImageIcon, Plus, Pencil, Trash2, X, Loader2, Upload, ExternalLink, AlertTriangle, ShieldCheck } from 'lucide-react'
 import { createImage, updateImage, deleteImage, uploadImageFile } from './actions'
 
 interface ImageGridProps {
@@ -10,7 +10,8 @@ interface ImageGridProps {
 
 export default function ImageGrid({ initialImages }: ImageGridProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isDeleting, setIsDeleting] = useState<string | null>(null)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [imageToDelete, setImageToDelete] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [editingImage, setEditingImage] = useState<any>(null)
   const [uploadProgress, setUploadProgress] = useState(false)
@@ -35,15 +36,17 @@ export default function ImageGrid({ initialImages }: ImageGridProps) {
     }
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this image?')) return
-    setIsDeleting(id)
+  const confirmDelete = async () => {
+    if (!imageToDelete) return
+    setIsSubmitting(true)
     try {
-      await deleteImage(id)
+      await deleteImage(imageToDelete)
+      setIsDeleteModalOpen(false)
+      setImageToDelete(null)
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Something went wrong')
     } finally {
-      setIsDeleting(null)
+      setIsSubmitting(false)
     }
   }
 
@@ -54,7 +57,6 @@ export default function ImageGrid({ initialImages }: ImageGridProps) {
     setUploadProgress(true)
     try {
       const publicUrl = await uploadImageFile(file)
-      // Set the URL input value
       const urlInput = document.getElementById('url-input') as HTMLInputElement
       if (urlInput) urlInput.value = publicUrl
     } catch (error) {
@@ -96,7 +98,6 @@ export default function ImageGrid({ initialImages }: ImageGridProps) {
                 </div>
               )}
               
-              {/* Overlay Actions */}
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
                 <button
                   onClick={() => {
@@ -104,17 +105,17 @@ export default function ImageGrid({ initialImages }: ImageGridProps) {
                     setIsModalOpen(true)
                   }}
                   className="bg-white p-3 rounded-2xl text-gray-900 hover:scale-110 transition-transform shadow-lg"
-                  title="Edit Image"
                 >
                   <Pencil className="w-5 h-5" />
                 </button>
                 <button
-                  onClick={() => handleDelete(image.id)}
-                  disabled={isDeleting === image.id}
-                  className="bg-white p-3 rounded-2xl text-red-600 hover:scale-110 transition-transform shadow-lg disabled:opacity-50"
-                  title="Delete Image"
+                  onClick={() => {
+                    setImageToDelete(image.id)
+                    setIsDeleteModalOpen(true)
+                  }}
+                  className="bg-white p-3 rounded-2xl text-red-600 hover:scale-110 transition-transform shadow-lg"
                 >
-                  {isDeleting === image.id ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
+                  <Trash2 className="w-5 h-5" />
                 </button>
                 {image.url && (
                   <a 
@@ -138,12 +139,20 @@ export default function ImageGrid({ initialImages }: ImageGridProps) {
               <h3 className="font-bold text-gray-900 mb-2 line-clamp-2 min-h-[3rem] text-sm leading-relaxed">
                 {image.image_description || 'No description provided'}
               </h3>
-              <div className="flex items-center justify-between mt-4">
+              
+              <div className="flex flex-col gap-1 mb-4">
                 <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                  {image.created_datetime_utc ? new Date(image.created_datetime_utc).toLocaleDateString() : 'Unknown'}
+                  Created: {image.created_datetime_utc ? new Date(image.created_datetime_utc).toLocaleDateString() : 'Unknown'}
                 </span>
+                <div className="flex items-center gap-1 text-[10px] text-gray-500 font-medium truncate">
+                  <ShieldCheck className="w-3 h-3 text-emerald-500" />
+                  ID: {image.profile_id || 'System'}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
                 {image.is_common_use && (
-                  <span className="text-[10px] bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-md font-bold uppercase">Common</span>
+                  <span className="text-[10px] bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-md font-bold uppercase">Common Use</span>
                 )}
               </div>
             </div>
@@ -203,19 +212,6 @@ export default function ImageGrid({ initialImages }: ImageGridProps) {
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-3">
-                  Additional Context
-                </label>
-                <textarea
-                  name="additional_context"
-                  defaultValue={editingImage?.additional_context}
-                  rows={2}
-                  className="w-full bg-gray-50 border-none rounded-2xl py-4 px-6 focus:ring-2 focus:ring-gray-900 transition-all text-sm resize-none"
-                  placeholder="Any extra metadata?"
-                />
-              </div>
-
               <div className="grid grid-cols-2 gap-4">
                 <label className="flex items-center gap-3 bg-gray-50 p-4 rounded-2xl cursor-pointer hover:bg-gray-100 transition-colors">
                   <input
@@ -245,6 +241,40 @@ export default function ImageGrid({ initialImages }: ImageGridProps) {
                 {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin" /> : editingImage ? 'Save Changes' : 'Create Image'}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsDeleteModalOpen(false)} />
+          <div className="bg-white w-full max-w-md rounded-[40px] p-10 relative z-10 shadow-2xl text-center">
+            <div className="bg-red-100 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-8">
+              <AlertTriangle className="w-10 h-10 text-red-600" />
+            </div>
+            
+            <h2 className="text-3xl font-black text-gray-900 mb-4">Are you sure?</h2>
+            <p className="text-gray-500 mb-10 text-lg">
+              This action cannot be undone. This image will be permanently removed from the database.
+            </p>
+
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                onClick={() => setIsDeleteModalOpen(false)}
+                className="bg-gray-100 text-gray-900 rounded-2xl py-4 px-6 font-bold hover:bg-gray-200 transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={isSubmitting}
+                className="bg-red-600 text-white rounded-2xl py-4 px-6 font-bold flex items-center justify-center gap-2 hover:bg-red-700 transition-all disabled:opacity-50"
+              >
+                {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       )}
