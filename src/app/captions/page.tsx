@@ -1,8 +1,9 @@
-import { supabase } from '@/lib/supabase'
+import { createAdminClient } from '@/utils/supabase/admin'
 import { ArrowLeft, MessageSquare, Star, Heart } from 'lucide-react'
 import Link from 'next/link'
 
 async function getCaptions() {
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('captions')
     .select('*, profiles(first_name, last_name), images(url, image_description)')
@@ -84,16 +85,6 @@ export default async function CaptionsPage() {
             </div>
           </div>
         ))}
-
-        {captions.length === 0 && (
-          <div className="bg-white rounded-3xl p-16 text-center border border-dashed border-gray-200">
-            <div className="bg-blue-100 w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-6">
-              <MessageSquare className="w-8 h-8 text-blue-600" />
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">No captions yet</h3>
-            <p className="text-gray-500">User generated captions will appear here.</p>
-          </div>
-        )}
       </div>
     </main>
   )

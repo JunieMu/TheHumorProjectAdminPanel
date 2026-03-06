@@ -1,8 +1,10 @@
-import { supabase } from '@/lib/supabase'
+import { createAdminClient } from '@/utils/supabase/admin'
 import { Users, Image as ImageIcon, MessageSquare, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 
 async function getStats() {
+  const supabase = createAdminClient()
+  
   const { count: userCount } = await supabase
     .from('profiles')
     .select('*', { count: 'exact', head: true })

@@ -1,9 +1,9 @@
-import { supabase } from '@/lib/supabase'
+import { createAdminClient } from '@/utils/supabase/admin'
 import { ArrowLeft, User, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 
 async function getUsers() {
-  // We use profiles table from the schema.sql
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('profiles')
     .select('*')
@@ -36,9 +36,6 @@ export default async function UsersPage() {
           <div>
             <h3 className="font-bold mb-1">Database Error</h3>
             <p className="text-sm opacity-90">{error.message}</p>
-            <p className="mt-4 text-xs font-mono bg-white/50 p-2 rounded-lg">
-              Code: {error.code}
-            </p>
           </div>
         </div>
       )}
@@ -83,15 +80,7 @@ export default async function UsersPage() {
               {(!users || users.length === 0) && !error && (
                 <tr>
                   <td colSpan={4} className="px-6 py-24 text-center">
-                    <div className="flex flex-col items-center gap-4">
-                      <div className="bg-gray-100 p-4 rounded-3xl">
-                        <User className="w-8 h-8 text-gray-400" />
-                      </div>
-                      <div className="text-gray-500 font-medium">No users found in the "profiles" table.</div>
-                      <p className="text-sm text-gray-400 max-w-md mx-auto">
-                        If you have data but it's not showing, check your Row Level Security (RLS) policies in Supabase or use the Service Role Key.
-                      </p>
-                    </div>
+                    <div className="text-gray-500 font-medium">No users found in the "profiles" table.</div>
                   </td>
                 </tr>
               )}
