@@ -83,11 +83,11 @@ export default async function Dashboard() {
       color: 'bg-indigo-100',
     },
     {
-      title: 'LLM Config',
-      description: 'Manage AI models and providers.',
+      title: 'LLM Center',
+      description: 'Manage models, providers, and view generation logs.',
       icon: <Cpu className="w-8 h-8 text-slate-600" />,
       href: '/llm-config',
-      count: 'Models',
+      count: 'Config',
       color: 'bg-slate-100',
     },
   ]

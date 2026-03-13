@@ -42,10 +42,24 @@ Response:
 1. Consolidated Flavor management into a unified 'Humor Engine Config' page.
 2. Implemented a nested UI where execution pipelines are displayed directly under their respective humor styles.
 
-Prompt: Great. Now can you add new functionality for these features: read caption requests, create/read/update/delete caption examples, create/read/update/delete llm models, create/read/update/delete llm providers. Can you also add a new functionality (card on the dashboard) to read the caption requests.
+Prompt: Great. Now can you add new functionality for these features: read caption requests, create/read/update/delete caption examples, create/read/update/delete llm models, create/read/update/delete llm providers.
 Response:
 1. Extended Dashboard with 'Learning Data' section (Requests & Examples).
 2. Implemented a detailed history view for Caption Requests with user and image context.
 3. Built a full CRUD management grid for Caption Examples (Few-shot learning data).
 4. Created a comprehensive LLM Config manager for both Models and Providers.
 5. Integrated robust error handling and confirmation flows across all new management suites.
+
+Prompt: Great thank you. can you also add a part create/read/update/delete terms
+Response:
+1. Updated Dashboard with 'Terms' card and real-time statistics.
+2. Created a comprehensive Terms Manager with full CRUD support.
+3. Implemented Server Actions for managing glossary terms and their types.
+4. Styled the terms interface with category tags and priority indicators.
+
+Prompt: Can you also add a card on the dashboard that works to do some features with llms: create/read/update/delete llm models, create/read/update/delete llm providers, read llm prompt chains, read llm responses
+Response:
+1. Expanded 'LLM Center' to be a comprehensive hub for all model activity.
+2. Implemented Model and Provider CRUD.
+3. Added a detailed view for Prompt Chains.
+4. Created an interactive Response Log with a full 'Response Trace' modal, displaying prompts, completions, cost, and latency.

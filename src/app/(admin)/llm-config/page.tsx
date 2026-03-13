@@ -17,15 +17,29 @@ async function getLLMData() {
     .from('llm_models')
     .select('*, llm_providers(name)')
     .order('name', { ascending: true })
+
+  const { data: chains } = await supabase
+    .from('llm_prompt_chains')
+    .select('*, caption_requests(id)')
+    .order('created_datetime_utc', { ascending: false })
+    .limit(50)
+
+  const { data: responses } = await supabase
+    .from('llm_model_responses')
+    .select('*, llm_models(name), humor_flavors(slug)')
+    .order('created_datetime_utc', { ascending: false })
+    .limit(100)
   
   return {
     providers: providers || [],
-    models: models || []
+    models: models || [],
+    chains: chains || [],
+    responses: responses || []
   }
 }
 
 export default async function LLMConfigPage() {
-  const { providers, models } = await getLLMData()
+  const { providers, models, chains, responses } = await getLLMData()
 
   return (
     <main className="min-h-screen p-8 max-w-7xl mx-auto">
@@ -34,11 +48,11 @@ export default async function LLMConfigPage() {
           <ArrowLeft className="w-4 h-4" />
           Back to Dashboard
         </Link>
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">LLM Configuration</h1>
-        <p className="text-gray-600 text-lg">Manage AI model providers and the specific models used by the engine.</p>
+        <h1 className="text-4xl font-bold text-gray-900 mb-2">LLM Center</h1>
+        <p className="text-gray-600 text-lg">Manage AI model providers and view real-time generation logs.</p>
       </div>
 
-      <LLMManager providers={providers} models={models} />
+      <LLMManager providers={providers} models={models} initialChains={chains} initialResponses={responses} />
     </main>
   )
 }
