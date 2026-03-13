@@ -67,7 +67,7 @@ export default async function Dashboard() {
 
   const engineCards = [
     {
-      title: 'Humor Engine',
+      title: 'Humor Flavors',
       description: 'Manage humor flavors and prompt strategies.',
       icon: <Zap className="w-8 h-8 text-purple-600" />,
       href: '/humor-engine',
@@ -161,8 +161,8 @@ export default async function Dashboard() {
                       {card.icon}
                     </div>
                     <div className="flex-grow">
-                      <div className="text-xl font-black text-gray-900 mb-0.5">{card.count}</div>
-                      <div className="text-[10px] font-black uppercase tracking-widest text-gray-400">{card.title}</div>
+                      <div className="text-sm font-black uppercase tracking-widest text-gray-400 mb-1">{card.title}</div>
+                      <div className="text-xl font-black text-gray-900">{card.count}</div>
                     </div>
                     <Link 
                       href={card.href}
@@ -180,18 +180,18 @@ export default async function Dashboard() {
             <h2 className="text-sm font-black uppercase tracking-widest text-gray-400 mb-6">Knowledge & History</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {dataCards.map((card) => (
-                <div key={card.title} className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 flex flex-col items-start">
+                <div key={card.title} className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 flex flex-col items-start text-left">
                   <div className={`${card.color} p-4 rounded-2xl mb-6`}>
                     {card.icon}
                   </div>
-                  <div className="text-2xl font-black text-gray-900 mb-1">{card.count.toLocaleString()}</div>
-                  <div className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">{card.title}</div>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">{card.title}</div>
+                  <div className="text-2xl font-black text-gray-900 mb-4">{card.count.toLocaleString()}</div>
                   <p className="text-gray-600 mb-6 text-xs">{card.description}</p>
                   <Link 
                     href={card.href}
-                    className="mt-auto inline-flex items-center gap-2 bg-gray-900 text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-gray-800 transition-colors text-xs"
+                    className="mt-auto inline-flex items-center gap-2 bg-gray-900 text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-gray-800 transition-all text-xs"
                   >
-                    Open {card.title}
+                    Open
                     <ArrowRight className="w-3 h-3" />
                   </Link>
                 </div>
