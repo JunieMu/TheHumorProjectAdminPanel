@@ -8,7 +8,8 @@ import {
   SlidersHorizontal, 
   Send, 
   Lightbulb, 
-  Cpu 
+  Cpu,
+  BookOpen
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -21,6 +22,7 @@ async function getStats() {
   const { count: flavorCount } = await supabase.from('humor_flavors').select('*', { count: 'exact', head: true })
   const { count: requestCount } = await supabase.from('caption_requests').select('*', { count: 'exact', head: true })
   const { count: exampleCount } = await supabase.from('caption_examples').select('*', { count: 'exact', head: true })
+  const { count: termCount } = await supabase.from('terms').select('*', { count: 'exact', head: true })
 
   return {
     users: userCount || 0,
@@ -29,6 +31,7 @@ async function getStats() {
     flavors: flavorCount || 0,
     requests: requestCount || 0,
     examples: exampleCount || 0,
+    terms: termCount || 0,
   }
 }
 
@@ -106,6 +109,14 @@ export default async function Dashboard() {
       count: stats.examples,
       color: 'bg-yellow-100',
     },
+    {
+      title: 'Terms',
+      description: 'Manage the glossary and knowledge base.',
+      icon: <BookOpen className="w-8 h-8 text-cyan-600" />,
+      href: '/terms',
+      count: stats.terms,
+      color: 'bg-cyan-100',
+    },
   ]
 
   return (
@@ -139,33 +150,35 @@ export default async function Dashboard() {
       </div>
 
       <div className="mb-16 text-sm">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-          <div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-1">
             <h2 className="text-sm font-black uppercase tracking-widest text-gray-400 mb-6">Humor Engine</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6">
               {engineCards.map((card) => (
                 <div key={card.title} className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 flex flex-col items-start">
-                  <div className={`${card.color} p-4 rounded-2xl mb-6`}>
-                    {card.icon}
+                  <div className="flex items-center gap-6 w-full">
+                    <div className={`${card.color} p-4 rounded-2xl flex-shrink-0`}>
+                      {card.icon}
+                    </div>
+                    <div className="flex-grow">
+                      <div className="text-xl font-black text-gray-900 mb-0.5">{card.count}</div>
+                      <div className="text-[10px] font-black uppercase tracking-widest text-gray-400">{card.title}</div>
+                    </div>
+                    <Link 
+                      href={card.href}
+                      className="bg-gray-50 p-3 rounded-xl text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-all"
+                    >
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
                   </div>
-                  <div className="text-2xl font-black text-gray-900 mb-1">{card.count}</div>
-                  <div className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">{card.title}</div>
-                  <p className="text-gray-600 mb-6 text-xs">{card.description}</p>
-                  <Link 
-                    href={card.href}
-                    className="mt-auto inline-flex items-center gap-2 bg-gray-900 text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-gray-800 transition-colors text-xs"
-                  >
-                    Open {card.title}
-                    <ArrowRight className="w-3 h-3" />
-                  </Link>
                 </div>
               ))}
             </div>
           </div>
 
-          <div>
-            <h2 className="text-sm font-black uppercase tracking-widest text-gray-400 mb-6">Learning Data</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="lg:col-span-2">
+            <h2 className="text-sm font-black uppercase tracking-widest text-gray-400 mb-6">Knowledge & History</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {dataCards.map((card) => (
                 <div key={card.title} className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 flex flex-col items-start">
                   <div className={`${card.color} p-4 rounded-2xl mb-6`}>
