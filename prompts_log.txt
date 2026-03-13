@@ -29,3 +29,23 @@ Response:
 1. Created .gemini/settings.json in the project root.
 2. Configured the Supabase MCP server with project-specific settings.
 3. Provided instructions for pasting the access token and restarting the CLI.
+
+Prompt: Great. Now we can start iterating on the project. I first want you to add new functionalities to allow for read humor flavors, read humor flavor steps, read/update humor mix.
+Response:
+1. Researching schema for humor_flavors, humor_flavor_steps, and humor_flavor_mix via Supabase MCP.
+2. Implemented "Humor Engine" and "Humor Mix" dashboard sections.
+3. Added views for Flavors and interactive Step pipelines.
+4. Created real-time mix configuration tools with server-side validation.
+
+Prompt: Great. Would it be possible to merge the humor flavors and the flavor steps into one page.
+Response:
+1. Consolidated Flavor management into a unified 'Humor Engine Config' page.
+2. Implemented a nested UI where execution pipelines are displayed directly under their respective humor styles.
+
+Prompt: Great. Now can you add new functionality for these features: read caption requests, create/read/update/delete caption examples, create/read/update/delete llm models, create/read/update/delete llm providers. Can you also add a new functionality (card on the dashboard) to read the caption requests.
+Response:
+1. Extended Dashboard with 'Learning Data' section (Requests & Examples).
+2. Implemented a detailed history view for Caption Requests with user and image context.
+3. Built a full CRUD management grid for Caption Examples (Few-shot learning data).
+4. Created a comprehensive LLM Config manager for both Models and Providers.
+5. Integrated robust error handling and confirmation flows across all new management suites.
