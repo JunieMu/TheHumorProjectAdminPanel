@@ -9,7 +9,10 @@ import {
   Send, 
   Lightbulb, 
   Cpu,
-  BookOpen
+  BookOpen,
+  ShieldCheck,
+  Globe,
+  Mail
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -23,6 +26,8 @@ async function getStats() {
   const { count: requestCount } = await supabase.from('caption_requests').select('*', { count: 'exact', head: true })
   const { count: exampleCount } = await supabase.from('caption_examples').select('*', { count: 'exact', head: true })
   const { count: termCount } = await supabase.from('terms').select('*', { count: 'exact', head: true })
+  const { count: domainCount } = await supabase.from('allowed_signup_domains').select('*', { count: 'exact', head: true })
+  const { count: emailCount } = await supabase.from('whitelist_email_addresses').select('*', { count: 'exact', head: true })
 
   return {
     users: userCount || 0,
@@ -32,6 +37,8 @@ async function getStats() {
     requests: requestCount || 0,
     examples: exampleCount || 0,
     terms: termCount || 0,
+    domains: domainCount || 0,
+    emails: emailCount || 0,
   }
 }
 
@@ -92,7 +99,7 @@ export default async function Dashboard() {
     },
   ]
 
-  const dataCards = [
+  const knowledgeCards = [
     {
       title: 'Caption Requests',
       description: 'History of all API calls for caption generation.',
@@ -116,6 +123,25 @@ export default async function Dashboard() {
       href: '/terms',
       count: stats.terms,
       color: 'bg-cyan-100',
+    },
+  ]
+
+  const securityCards = [
+    {
+      title: 'Allowed Domains',
+      description: 'Domains permitted for user sign-up.',
+      icon: <Globe className="w-8 h-8 text-rose-600" />,
+      href: '/access-control?tab=domains',
+      count: stats.domains,
+      color: 'bg-rose-100',
+    },
+    {
+      title: 'Whitelist Emails',
+      description: 'Specific emails granted access.',
+      icon: <Mail className="w-8 h-8 text-emerald-600" />,
+      href: '/access-control?tab=emails',
+      count: stats.emails,
+      color: 'bg-emerald-100',
     },
   ]
 
@@ -149,9 +175,9 @@ export default async function Dashboard() {
         </div>
       </div>
 
-      <div className="mb-16 text-sm">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-1">
+      <div className="mb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+          <div>
             <h2 className="text-sm font-black uppercase tracking-widest text-gray-400 mb-6">Humor Engine</h2>
             <div className="grid grid-cols-1 gap-6">
               {engineCards.map((card) => (
@@ -176,16 +202,16 @@ export default async function Dashboard() {
             </div>
           </div>
 
-          <div className="lg:col-span-2">
-            <h2 className="text-sm font-black uppercase tracking-widest text-gray-400 mb-6">Knowledge & History</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {dataCards.map((card) => (
-                <div key={card.title} className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 flex flex-col items-start text-left">
+          <div>
+            <h2 className="text-sm font-black uppercase tracking-widest text-gray-400 mb-6">Security & Access</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {securityCards.map((card) => (
+                <div key={card.title} className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 flex flex-col items-start">
                   <div className={`${card.color} p-4 rounded-2xl mb-6`}>
                     {card.icon}
                   </div>
-                  <div className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">{card.title}</div>
-                  <div className="text-2xl font-black text-gray-900 mb-4">{card.count.toLocaleString()}</div>
+                  <div className="text-2xl font-black text-gray-900 mb-1">{card.count.toLocaleString()}</div>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">{card.title}</div>
                   <p className="text-gray-600 mb-6 text-xs">{card.description}</p>
                   <Link 
                     href={card.href}
@@ -201,9 +227,35 @@ export default async function Dashboard() {
         </div>
       </div>
 
+      <div className="mb-16">
+        <h2 className="text-sm font-black uppercase tracking-widest text-gray-400 mb-6">Knowledge & History</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {knowledgeCards.map((card) => (
+            <div key={card.title} className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 flex flex-col items-start">
+              <div className={`${card.color} p-4 rounded-2xl mb-6`}>
+                {card.icon}
+              </div>
+              <div className="text-2xl font-black text-gray-900 mb-1">{card.count.toLocaleString()}</div>
+              <div className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">{card.title}</div>
+              <p className="text-gray-600 mb-6 text-xs">{card.description}</p>
+              <Link 
+                href={card.href}
+                className="mt-auto inline-flex items-center gap-2 bg-gray-900 text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-gray-800 transition-all text-xs"
+              >
+                Open
+                <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
-          <h2 className="text-2xl font-bold mb-6">System Health</h2>
+          <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
+            <ShieldCheck className="w-6 h-6 text-emerald-500" />
+            System Health
+          </h2>
           <div className="space-y-4">
             <div className="flex justify-between items-center p-4 bg-gray-50 rounded-2xl">
               <span className="font-medium text-sm">Supabase Connection</span>
