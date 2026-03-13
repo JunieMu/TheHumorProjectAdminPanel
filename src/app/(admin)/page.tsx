@@ -1,5 +1,5 @@
 import { createAdminClient } from '@/utils/supabase/admin'
-import { Users, Image as ImageIcon, MessageSquare, ArrowRight } from 'lucide-react'
+import { Users, Image as ImageIcon, MessageSquare, ArrowRight, Zap, ListTree, SlidersHorizontal } from 'lucide-react'
 import Link from 'next/link'
 
 async function getStats() {
@@ -17,17 +17,27 @@ async function getStats() {
     .from('captions')
     .select('*', { count: 'exact', head: true })
 
+  const { count: flavorCount } = await supabase
+    .from('humor_flavors')
+    .select('*', { count: 'exact', head: true })
+
+  const { count: stepCount } = await supabase
+    .from('humor_flavor_steps')
+    .select('*', { count: 'exact', head: true })
+
   return {
     users: userCount || 0,
     images: imageCount || 0,
     captions: captionCount || 0,
+    flavors: flavorCount || 0,
+    steps: stepCount || 0,
   }
 }
 
 export default async function Dashboard() {
   const stats = await getStats()
 
-  const navCards = [
+  const mainCards = [
     {
       title: 'Users',
       description: 'Manage user profiles and study participation.',
@@ -54,6 +64,33 @@ export default async function Dashboard() {
     },
   ]
 
+  const engineCards = [
+    {
+      title: 'Humor Flavors',
+      description: 'View the different humor styles and strategies.',
+      icon: <Zap className="w-8 h-8 text-purple-600" />,
+      href: '/humor-flavors',
+      count: stats.flavors,
+      color: 'bg-purple-100',
+    },
+    {
+      title: 'Flavor Steps',
+      description: 'Examine the LLM prompt chains for each flavor.',
+      icon: <ListTree className="w-8 h-8 text-rose-600" />,
+      href: '/humor-steps',
+      count: stats.steps,
+      color: 'bg-rose-100',
+    },
+    {
+      title: 'Humor Mix',
+      description: 'Control the balance of flavors in the generation engine.',
+      icon: <SlidersHorizontal className="w-8 h-8 text-indigo-600" />,
+      href: '/humor-mix',
+      count: 'Config',
+      color: 'bg-indigo-100',
+    },
+  ]
+
   return (
     <main className="min-h-screen p-8 max-w-7xl mx-auto">
       <div className="mb-12">
@@ -61,24 +98,50 @@ export default async function Dashboard() {
         <p className="text-gray-600 text-lg">The Humor Project Overview</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-        {navCards.map((card) => (
-          <div key={card.title} className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 flex flex-col items-start">
-            <div className={`${card.color} p-4 rounded-2xl mb-6`}>
-              {card.icon}
+      <div className="mb-8">
+        <h2 className="text-sm font-black uppercase tracking-widest text-gray-400 mb-6">Core Management</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+          {mainCards.map((card) => (
+            <div key={card.title} className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 flex flex-col items-start">
+              <div className={`${card.color} p-4 rounded-2xl mb-6`}>
+                {card.icon}
+              </div>
+              <div className="text-4xl font-black text-gray-900 mb-1">{card.count.toLocaleString()}</div>
+              <div className="text-gray-500 font-medium uppercase tracking-wider text-xs mb-4">{card.title}</div>
+              <p className="text-gray-600 mb-8">{card.description}</p>
+              <Link 
+                href={card.href}
+                className="mt-auto inline-flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-xl font-semibold hover:bg-gray-800 transition-colors"
+              >
+                Manage {card.title}
+                <ArrowRight className="w-4 h-4" />
+              </Link>
             </div>
-            <div className="text-4xl font-black text-gray-900 mb-1">{card.count.toLocaleString()}</div>
-            <div className="text-gray-500 font-medium uppercase tracking-wider text-xs mb-4">{card.title}</div>
-            <p className="text-gray-600 mb-8">{card.description}</p>
-            <Link 
-              href={card.href}
-              className="mt-auto inline-flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-xl font-semibold hover:bg-gray-800 transition-colors"
-            >
-              Manage {card.title}
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-        ))}
+          ))}
+        </div>
+      </div>
+
+      <div className="mb-16">
+        <h2 className="text-sm font-black uppercase tracking-widest text-gray-400 mb-6">Humor Engine</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {engineCards.map((card) => (
+            <div key={card.title} className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 flex flex-col items-start">
+              <div className={`${card.color} p-4 rounded-2xl mb-6`}>
+                {card.icon}
+              </div>
+              <div className="text-4xl font-black text-gray-900 mb-1">{card.count}</div>
+              <div className="text-gray-500 font-medium uppercase tracking-wider text-xs mb-4">{card.title}</div>
+              <p className="text-gray-600 mb-8">{card.description}</p>
+              <Link 
+                href={card.href}
+                className="mt-auto inline-flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-xl font-semibold hover:bg-gray-800 transition-colors"
+              >
+                Open {card.title}
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
