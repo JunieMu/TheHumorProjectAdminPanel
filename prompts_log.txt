@@ -74,3 +74,9 @@ Prompt: I'm also running into a problem with the "allowed domains" page. There a
 Response:
 1. Diagnosed a schema mismatch: the database table `allowed_signup_domains` uses `apex_domain` but the code was referencing `domain_name`.
 2. Updated `AccessControlPage` query, `SecurityManager` UI, and all associated Server Actions to use the correct `apex_domain` column.
+
+Prompt: Can you also update the navigation bar to have references to all the pages.
+Response:
+1. Updated `AdminLayout` to include a comprehensive navigation bar.
+2. Added links for Users, Images, Captions, Requests, Examples, Engine, Mix, LLM, Terms, and Access Control with corresponding Lucide icons.
+3. Enhanced the header layout to accommodate the expanded navigation on larger screens.
