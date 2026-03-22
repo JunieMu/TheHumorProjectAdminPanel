@@ -52,6 +52,12 @@ async function getStats() {
     supabase.rpc('get_total_likes')
   ])
 
+  // Process activity data to ensure numbers
+  const activity = (activityData as any[] || []).map(day => ({
+    date: day.date,
+    count: Number(day.count) || 0
+  }))
+
   return {
     counts: {
       users: userCount || 0,
@@ -64,7 +70,7 @@ async function getStats() {
       domains: domainCount || 0,
       emails: emailCount || 0,
     },
-    activity: (activityData as any[]) || [],
+    activity,
     topContributors: (topContributorsData as any[]) || [],
     totalLikes: Number(totalLikesData) || 0
   }
@@ -72,12 +78,6 @@ async function getStats() {
 
 export default async function Dashboard() {
   const stats = await getStats()
-  console.log('Dashboard Stats:', { 
-    activityCount: stats.activity.length, 
-    firstActivity: stats.activity[0],
-    lastActivity: stats.activity[stats.activity.length - 1],
-    activityData: stats.activity 
-  })
 
   return (
     <main className="min-h-screen p-8 max-w-7xl mx-auto">
@@ -107,10 +107,10 @@ export default async function Dashboard() {
               return (
                 <div key={day.date} className="flex-grow flex flex-col items-center group relative">
                   <div 
-                    style={{ height: `${Math.max(height, 5)}%` }}
-                    className="w-full bg-orange-500 rounded-t-xl opacity-20 group-hover:opacity-100 transition-all duration-500 cursor-help"
+                    style={{ height: `${Math.max(height, 8)}%` }}
+                    className="w-full bg-orange-500 rounded-t-xl opacity-40 group-hover:opacity-100 transition-all duration-500 cursor-help"
                   />
-                  <div className="absolute -top-10 bg-gray-900 text-white text-[10px] font-black py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                  <div className="absolute -top-10 bg-gray-900 text-white text-[10px] font-black py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
                     {day.count} requests
                   </div>
                 </div>
@@ -118,7 +118,7 @@ export default async function Dashboard() {
             })}
           </div>
           <div className="flex justify-between mt-4">
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{stats.activity[0].date}</span>
+            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{stats.activity[0]?.date}</span>
             <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Today</span>
           </div>
         </div>
