@@ -8,7 +8,7 @@ async function getRequests() {
   const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('caption_requests')
-    .select('*, profiles(first_name, last_name, email), images(url, image_description)')
+    .select('*, profiles!profile_id(first_name, last_name, email), images(url, image_description)')
     .order('created_datetime_utc', { ascending: false })
     .limit(100)
   
