@@ -11,13 +11,13 @@ export default function AdminLayout({
     { href: '/users', label: 'Users', icon: Users },
     { href: '/images', label: 'Images', icon: ImageIcon },
     { href: '/captions', label: 'Captions', icon: MessageSquare },
-    { href: '/caption-requests', label: 'Requests', icon: Send },
-    { href: '/caption-examples', label: 'Examples', icon: FileText },
     { href: '/humor-engine', label: 'Engine', icon: Zap },
     { href: '/humor-mix', label: 'Mix', icon: Sliders },
     { href: '/llm-config', label: 'LLM', icon: Cpu },
-    { href: '/terms', label: 'Terms', icon: BookOpen },
     { href: '/access-control', label: 'Access', icon: ShieldCheck },
+    { href: '/caption-requests', label: 'Requests', icon: Send },
+    { href: '/caption-examples', label: 'Examples', icon: FileText },
+    { href: '/terms', label: 'Terms', icon: BookOpen },
   ]
 
   return (
