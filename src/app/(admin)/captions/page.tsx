@@ -1,22 +1,8 @@
 import { createAdminClient } from '@/utils/supabase/admin'
-import { ArrowLeft, MessageSquare, Star, Heart, Database } from 'lucide-react'
+import { ArrowLeft, MessageSquare, Star, Heart } from 'lucide-react'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
-
-async function getDebugInfo() {
-  const supabase = createAdminClient()
-  const { count, error } = await supabase
-    .from('captions')
-    .select('*', { count: 'exact', head: true })
-  
-  return {
-    count: count || 0,
-    error,
-    keyPresent: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-    keySnippet: process.env.SUPABASE_SERVICE_ROLE_KEY?.substring(0, 5)
-  }
-}
 
 async function getCaptions() {
   const supabase = createAdminClient()
@@ -24,7 +10,6 @@ async function getCaptions() {
     .from('captions')
     .select('*, profiles!profile_id(first_name, last_name), images(url, image_description)')
     .order('created_datetime_utc', { ascending: false })
-    .limit(50)
   
   if (error) {
     console.error('Error fetching captions:', error)
@@ -35,7 +20,6 @@ async function getCaptions() {
 
 export default async function CaptionsPage() {
   const { data: captions, error } = await getCaptions()
-  const debug = await getDebugInfo()
 
   return (
     <main className="min-h-screen p-8 max-w-7xl mx-auto">
@@ -49,32 +33,17 @@ export default async function CaptionsPage() {
         </div>
       </div>
 
-      {/* Debug Panel - Keeping for final verification */}
-      <div className="bg-blue-50 border border-blue-100 rounded-3xl p-6 mb-8">
-        <div className="flex items-center gap-3 mb-4 text-blue-800 font-bold">
-          <Database className="w-5 h-5" />
-          Captions System Status
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-          <div className="bg-white p-4 rounded-2xl shadow-sm">
-            <span className="text-gray-500 block">Total Captions</span>
-            <span className="text-xl font-black">{debug.count.toLocaleString()}</span>
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-2xl mb-8 flex items-start gap-3">
+          <div className="p-1 bg-red-100 rounded-lg">
+            <MessageSquare className="w-5 h-5" />
           </div>
-          <div className="bg-white p-4 rounded-2xl shadow-sm">
-            <span className="text-gray-500 block">Fetch Status</span>
-            <span className="text-xl font-black">{error ? 'Error' : captions.length > 0 ? 'Data Loaded' : 'Empty'}</span>
-          </div>
-          <div className="bg-white p-4 rounded-2xl shadow-sm">
-            <span className="text-gray-500 block">Items Displayed</span>
-            <span className="text-xl font-black">{captions.length}</span>
+          <div>
+            <h3 className="font-bold text-sm">Database Error</h3>
+            <p className="text-xs opacity-80">{error.message}</p>
           </div>
         </div>
-        {error && (
-          <div className="mt-4 p-4 bg-red-100 border border-red-200 rounded-2xl text-red-800 text-xs font-mono">
-            {error.message}
-          </div>
-        )}
-      </div>
+      )}
 
       <div className="space-y-6">
         {captions && captions.length > 0 ? (
