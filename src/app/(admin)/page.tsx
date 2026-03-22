@@ -33,7 +33,10 @@ async function getStats() {
     { count: exampleCount },
     { count: termCount },
     { count: domainCount },
-    { count: emailCount }
+    { count: emailCount },
+    { data: activityData },
+    { data: topContributorsData },
+    { data: totalLikesData }
   ] = await Promise.all([
     supabase.from('profiles').select('*', { count: 'exact', head: true }),
     supabase.from('images').select('*', { count: 'exact', head: true }),
@@ -43,45 +46,11 @@ async function getStats() {
     supabase.from('caption_examples').select('*', { count: 'exact', head: true }),
     supabase.from('terms').select('*', { count: 'exact', head: true }),
     supabase.from('allowed_signup_domains').select('*', { count: 'exact', head: true }),
-    supabase.from('whitelist_email_addresses').select('*', { count: 'exact', head: true })
+    supabase.from('whitelist_email_addresses').select('*', { count: 'exact', head: true }),
+    supabase.rpc('get_daily_activity', { days_count: 14 }),
+    supabase.rpc('get_top_contributors', { limit_count: 3 }),
+    supabase.rpc('get_total_likes')
   ])
-
-  // Activity Trends (Last 14 days)
-  const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString()
-  const { data: dailyRequests } = await supabase.from('caption_requests')
-    .select('created_datetime_utc')
-    .gt('created_datetime_utc', fourteenDaysAgo)
-
-  const activityMap: Record<string, number> = {}
-  dailyRequests?.forEach(req => {
-    const date = new Date(req.created_datetime_utc).toISOString().split('T')[0]
-    activityMap[date] = (activityMap[date] || 0) + 1
-  })
-  
-  const last14Days = Array.from({ length: 14 }, (_, i) => {
-    const d = new Date()
-    d.setDate(d.getDate() - (13 - i))
-    const dateStr = d.toISOString().split('T')[0]
-    return { date: dateStr, count: activityMap[dateStr] || 0 }
-  })
-
-  // Top Contributors (Directly from captions to ensure correctness)
-  // We use the caption_requests count as a proxy for engagement or just the captions they created
-  const { data: contributors } = await supabase
-    .from('profiles')
-    .select('id, first_name, last_name, email, captions(count)')
-
-  const topContributors = (contributors || [])
-    .map(c => ({
-      name: (c.first_name || c.last_name) ? `${c.first_name || ''} ${c.last_name || ''}`.trim() : (c.email || 'Anonymous'),
-      count: (c.captions as any)?.[0]?.count || 0
-    }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 3)
-
-  // Sentiment (Net Likes)
-  const { data: captionsData } = await supabase.from('captions').select('like_count')
-  const totalLikesSum = captionsData?.reduce((acc, curr) => acc + (Number(curr.like_count) || 0), 0) || 0
 
   return {
     counts: {
@@ -95,9 +64,9 @@ async function getStats() {
       domains: domainCount || 0,
       emails: emailCount || 0,
     },
-    activity: last14Days,
-    topContributors,
-    totalLikes: totalLikesSum
+    activity: (activityData as any[]) || [],
+    topContributors: (topContributorsData as any[]) || [],
+    totalLikes: Number(totalLikesData) || 0
   }
 }
 
