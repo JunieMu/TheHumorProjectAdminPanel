@@ -23,23 +23,34 @@ import Link from 'next/link'
 async function getStats() {
   const supabase = createAdminClient()
   
-  // Basic Counts
-  const { count: userCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true })
-  const { count: imageCount } = await supabase.from('images').select('*', { count: 'exact', head: true })
-  const { count: captionCount } = await supabase.from('captions').select('*', { count: 'exact', head: true })
-  const { count: flavorCount } = await supabase.from('humor_flavors').select('*', { count: 'exact', head: true })
-  const { count: requestCount } = await supabase.from('caption_requests').select('*', { count: 'exact', head: true })
-  const { count: exampleCount } = await supabase.from('caption_examples').select('*', { count: 'exact', head: true })
-  const { count: termCount } = await supabase.from('terms').select('*', { count: 'exact', head: true })
-  const { count: domainCount } = await supabase.from('allowed_signup_domains').select('*', { count: 'exact', head: true })
-  const { count: emailCount } = await supabase.from('whitelist_email_addresses').select('*', { count: 'exact', head: true })
+  // Basic Counts (in parallel)
+  const [
+    { count: userCount },
+    { count: imageCount },
+    { count: captionCount },
+    { count: flavorCount },
+    { count: requestCount },
+    { count: exampleCount },
+    { count: termCount },
+    { count: domainCount },
+    { count: emailCount }
+  ] = await Promise.all([
+    supabase.from('profiles').select('*', { count: 'exact', head: true }),
+    supabase.from('images').select('*', { count: 'exact', head: true }),
+    supabase.from('captions').select('*', { count: 'exact', head: true }),
+    supabase.from('humor_flavors').select('*', { count: 'exact', head: true }),
+    supabase.from('caption_requests').select('*', { count: 'exact', head: true }),
+    supabase.from('caption_examples').select('*', { count: 'exact', head: true }),
+    supabase.from('terms').select('*', { count: 'exact', head: true }),
+    supabase.from('allowed_signup_domains').select('*', { count: 'exact', head: true }),
+    supabase.from('whitelist_email_addresses').select('*', { count: 'exact', head: true })
+  ])
 
   // Activity Trends (Last 14 days)
-  const { data: recentActivity } = await supabase.rpc('get_daily_request_counts') 
-  // If RPC doesn't exist, we'll use a raw query
+  const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString()
   const { data: dailyRequests } = await supabase.from('caption_requests')
     .select('created_datetime_utc')
-    .gt('created_datetime_utc', new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString())
+    .gt('created_datetime_utc', fourteenDaysAgo)
 
   const activityMap: Record<string, number> = {}
   dailyRequests?.forEach(req => {
@@ -54,22 +65,23 @@ async function getStats() {
     return { date: dateStr, count: activityMap[dateStr] || 0 }
   })
 
-  // Top Contributors
-  const { data: topContributors } = await supabase
+  // Top Contributors (Directly from captions to ensure correctness)
+  // We use the caption_requests count as a proxy for engagement or just the captions they created
+  const { data: contributors } = await supabase
     .from('profiles')
-    .select('first_name, last_name, captions(count)')
-    .order('captions(count)', { ascending: false })
-    .limit(3)
+    .select('id, first_name, last_name, email, captions(count)')
 
-  // Sentiment (Likes)
-  const { data: totalLikes } = await supabase.from('captions').select('like_count')
-  const totalLikesSum = totalLikes?.reduce((acc, curr) => acc + (Number(curr.like_count) || 0), 0) || 0
+  const topContributors = (contributors || [])
+    .map(c => ({
+      name: (c.first_name || c.last_name) ? `${c.first_name || ''} ${c.last_name || ''}`.trim() : (c.email || 'Anonymous'),
+      count: (c.captions as any)?.[0]?.count || 0
+    }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 3)
 
-  // Flavor Popularity
-  const { data: flavorUsage } = await supabase
-    .from('humor_flavors')
-    .select('slug, captions(count)')
-    .limit(5)
+  // Sentiment (Net Likes)
+  const { data: captionsData } = await supabase.from('captions').select('like_count')
+  const totalLikesSum = captionsData?.reduce((acc, curr) => acc + (Number(curr.like_count) || 0), 0) || 0
 
   return {
     counts: {
@@ -84,12 +96,8 @@ async function getStats() {
       emails: emailCount || 0,
     },
     activity: last14Days,
-    topContributors: topContributors || [],
-    totalLikes: totalLikesSum,
-    flavorUsage: flavorUsage?.map(f => ({ 
-      name: f.slug, 
-      count: (f.captions as any)?.[0]?.count || 0 
-    })).sort((a, b) => b.count - a.count) || []
+    topContributors,
+    totalLikes: totalLikesSum
   }
 }
 
@@ -105,7 +113,7 @@ export default async function Dashboard() {
 
       {/* Visual Intelligence Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
-        {/* Activity Heatmap Style */}
+        {/* Activity Bar Chart */}
         <div className="lg:col-span-2 bg-white rounded-[40px] p-10 shadow-sm border border-gray-100">
           <div className="flex items-center justify-between mb-10">
             <div className="flex items-center gap-4">
@@ -117,7 +125,7 @@ export default async function Dashboard() {
             <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Last 14 Days</span>
           </div>
           
-          <div className="flex items-end justify-between h-48 gap-2">
+          <div className="flex items-end justify-between h-48 gap-3">
             {stats.activity.map((day, i) => {
               const max = Math.max(...stats.activity.map(a => a.count), 1)
               const height = (day.count / max) * 100
@@ -154,15 +162,18 @@ export default async function Dashboard() {
                     <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center font-black text-xs">
                       {i + 1}
                     </div>
-                    <span className="font-bold text-sm truncate max-w-[120px]">
-                      {c.first_name} {c.last_name}
+                    <span className="font-bold text-sm truncate max-w-[150px]">
+                      {c.name}
                     </span>
                   </div>
                   <span className="text-[10px] font-black bg-white/10 px-3 py-1 rounded-full uppercase tracking-widest">
-                    {(c.captions as any)?.[0]?.count || 0}
+                    {c.count}
                   </span>
                 </div>
               ))}
+              {stats.topContributors.length === 0 && (
+                <div className="text-center py-4 text-gray-500 text-xs font-bold uppercase tracking-widest">No data available</div>
+              )}
             </div>
           </div>
 
@@ -170,17 +181,17 @@ export default async function Dashboard() {
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <Heart className="w-5 h-5 text-rose-500 fill-rose-500" />
-                <h2 className="text-sm font-black uppercase tracking-widest text-gray-400">Net Sentiment</h2>
+                <h2 className="text-sm font-black uppercase tracking-widest text-gray-400">Engagement Index</h2>
               </div>
               <span className="text-xl font-black text-gray-900">{stats.totalLikes.toLocaleString()}</span>
             </div>
             <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden">
               <div 
-                className="h-full bg-rose-500 rounded-full" 
-                style={{ width: `${Math.min((stats.totalLikes / 1000) * 100, 100)}%` }}
+                className="h-full bg-rose-500 rounded-full transition-all duration-1000" 
+                style={{ width: `${Math.max(5, Math.min((stats.totalLikes / 1000) * 100, 100))}%` }}
               />
             </div>
-            <p className="mt-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Engagement index &bull; trending up</p>
+            <p className="mt-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Net cumulative likes across all captions</p>
           </div>
         </div>
       </div>
