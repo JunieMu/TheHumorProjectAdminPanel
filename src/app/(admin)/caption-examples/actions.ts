@@ -1,9 +1,18 @@
 'use server'
 
 import { createAdminClient } from '@/utils/supabase/admin'
+import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 
+async function getCurrentUserId() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+  return user.id
+}
+
 export async function createExample(formData: FormData) {
+  const userId = await getCurrentUserId()
   const supabase = createAdminClient()
   
   const image_description = formData.get('image_description') as string
@@ -20,7 +29,8 @@ export async function createExample(formData: FormData) {
       explanation,
       priority,
       image_id,
-      created_datetime_utc: new Date().toISOString()
+      created_by_user_id: userId,
+      modified_by_user_id: userId
     }])
 
   if (error) throw new Error(error.message)
@@ -30,6 +40,7 @@ export async function createExample(formData: FormData) {
 }
 
 export async function updateExample(id: string, formData: FormData) {
+  const userId = await getCurrentUserId()
   const supabase = createAdminClient()
   
   const image_description = formData.get('image_description') as string
@@ -46,7 +57,7 @@ export async function updateExample(id: string, formData: FormData) {
       explanation,
       priority,
       image_id,
-      modified_datetime_utc: new Date().toISOString()
+      modified_by_user_id: userId
     })
     .eq('id', id)
 

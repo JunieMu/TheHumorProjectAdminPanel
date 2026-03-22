@@ -1,9 +1,18 @@
 'use server'
 
 import { createAdminClient } from '@/utils/supabase/admin'
+import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 
+async function getCurrentUserId() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+  return user.id
+}
+
 export async function createTerm(formData: FormData) {
+  const userId = await getCurrentUserId()
   const supabase = createAdminClient()
   
   const term = formData.get('term') as string
@@ -20,7 +29,8 @@ export async function createTerm(formData: FormData) {
       example,
       priority,
       term_type_id,
-      created_datetime_utc: new Date().toISOString()
+      created_by_user_id: userId,
+      modified_by_user_id: userId
     }])
 
   if (error) throw new Error(error.message)
@@ -30,6 +40,7 @@ export async function createTerm(formData: FormData) {
 }
 
 export async function updateTerm(id: number, formData: FormData) {
+  const userId = await getCurrentUserId()
   const supabase = createAdminClient()
   
   const term = formData.get('term') as string
@@ -46,7 +57,7 @@ export async function updateTerm(id: number, formData: FormData) {
       example,
       priority,
       term_type_id,
-      modified_datetime_utc: new Date().toISOString()
+      modified_by_user_id: userId
     })
     .eq('id', id)
 
