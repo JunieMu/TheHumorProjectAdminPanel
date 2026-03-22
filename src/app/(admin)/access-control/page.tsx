@@ -11,7 +11,7 @@ async function getAccessData() {
   const { data: domains } = await supabase
     .from('allowed_signup_domains')
     .select('*')
-    .order('domain_name', { ascending: true })
+    .order('apex_domain', { ascending: true })
 
   const { data: emails } = await supabase
     .from('whitelist_email_addresses')

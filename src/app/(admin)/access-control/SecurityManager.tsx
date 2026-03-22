@@ -116,7 +116,7 @@ export default function SecurityManager({ domains, emails }: SecurityManagerProp
                       {activeTab === 'domains' ? <Globe className="w-5 h-5" /> : <Mail className="w-5 h-5" />}
                     </div>
                     <div>
-                      <span className="block font-black text-gray-900 text-lg">{activeTab === 'domains' ? item.domain_name : item.email_address}</span>
+                      <span className="block font-black text-gray-900 text-lg">{activeTab === 'domains' ? item.apex_domain : item.email_address}</span>
                       <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">ID: {item.id}</span>
                     </div>
                   </div>
@@ -184,8 +184,8 @@ export default function SecurityManager({ domains, emails }: SecurityManagerProp
                   {activeTab === 'domains' ? 'Domain (e.g. university.edu)' : 'Email Address'}
                 </label>
                 <input 
-                  name={activeTab === 'domains' ? 'domain_name' : 'email_address'} 
-                  defaultValue={activeTab === 'domains' ? editingItem?.domain_name : editingItem?.email_address} 
+                  name={activeTab === 'domains' ? 'apex_domain' : 'email_address'} 
+                  defaultValue={activeTab === 'domains' ? editingItem?.apex_domain : editingItem?.email_address} 
                   className="w-full bg-gray-50 border-none rounded-2xl py-4 px-6 focus:ring-2 focus:ring-gray-900 transition-all text-sm font-bold" 
                   placeholder={activeTab === 'domains' ? 'mit.edu' : 'user@example.com'}
                   required 

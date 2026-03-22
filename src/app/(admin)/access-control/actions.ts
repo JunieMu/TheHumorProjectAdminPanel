@@ -15,12 +15,12 @@ async function getCurrentUserId() {
 export async function createDomain(formData: FormData) {
   const userId = await getCurrentUserId()
   const supabase = createAdminClient()
-  const domain_name = formData.get('domain_name') as string
+  const apex_domain = formData.get('apex_domain') as string
 
   const { error } = await supabase
     .from('allowed_signup_domains')
     .insert([{ 
-      domain_name, 
+      apex_domain, 
       created_by_user_id: userId,
       modified_by_user_id: userId 
     }])
@@ -33,12 +33,12 @@ export async function createDomain(formData: FormData) {
 export async function updateDomain(id: number, formData: FormData) {
   const userId = await getCurrentUserId()
   const supabase = createAdminClient()
-  const domain_name = formData.get('domain_name') as string
+  const apex_domain = formData.get('apex_domain') as string
 
   const { error } = await supabase
     .from('allowed_signup_domains')
     .update({ 
-      domain_name, 
+      apex_domain, 
       modified_by_user_id: userId 
     })
     .eq('id', id)
