@@ -25,18 +25,9 @@ async function getStats() {
   
   // Basic Counts (in parallel)
   const [
-    { count: userCount },
-    { count: imageCount },
-    { count: captionCount },
-    { count: flavorCount },
-    { count: requestCount },
-    { count: exampleCount },
-    { count: termCount },
-    { count: domainCount },
-    { count: emailCount },
-    { data: activityData },
-    { data: topContributorsData },
-    { data: totalLikesData }
+    userRes, imageRes, captionRes, flavorRes, requestRes, 
+    exampleRes, termRes, domainRes, emailRes, 
+    activityRes, topContributorsRes, totalLikesRes
   ] = await Promise.all([
     supabase.from('profiles').select('*', { count: 'exact', head: true }),
     supabase.from('images').select('*', { count: 'exact', head: true }),
@@ -53,26 +44,26 @@ async function getStats() {
   ])
 
   // Process activity data to ensure numbers
-  const activity = (activityData as any[] || []).map(day => ({
+  const activity = (activityRes.data as any[] || []).map(day => ({
     date: day.date,
     count: Number(day.count) || 0
   }))
 
   return {
     counts: {
-      users: userCount || 0,
-      images: imageCount || 0,
-      captions: captionCount || 0,
-      flavors: flavorCount || 0,
-      requests: requestCount || 0,
-      examples: exampleCount || 0,
-      terms: termCount || 0,
-      domains: domainCount || 0,
-      emails: emailCount || 0,
+      users: userRes.count || 0,
+      images: imageRes.count || 0,
+      captions: captionRes.count || 0,
+      flavors: flavorRes.count || 0,
+      requests: requestRes.count || 0,
+      examples: exampleRes.count || 0,
+      terms: termRes.count || 0,
+      domains: domainRes.count || 0,
+      emails: emailRes.count || 0,
     },
     activity,
-    topContributors: (topContributorsData as any[]) || [],
-    totalLikes: Number(totalLikesData) || 0
+    topContributors: (topContributorsRes.data as any[]) || [],
+    totalLikes: Number(totalLikesRes.data) || 0
   }
 }
 
@@ -107,11 +98,11 @@ export default async function Dashboard() {
               return (
                 <div key={day.date} className="flex-grow flex flex-col items-center group relative">
                   <div 
-                    style={{ height: `${Math.max(height, 8)}%` }}
-                    className="w-full bg-orange-500 rounded-t-xl opacity-40 group-hover:opacity-100 transition-all duration-500 cursor-help"
+                    style={{ height: `${Math.max(height, 5)}%` }}
+                    className="w-full bg-orange-500 rounded-t-xl opacity-60 group-hover:opacity-100 transition-all duration-500 cursor-help"
                   />
                   <div className="absolute -top-10 bg-gray-900 text-white text-[10px] font-black py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
-                    {day.count} requests
+                    {day.date}: {day.count} requests
                   </div>
                 </div>
               )
@@ -119,7 +110,7 @@ export default async function Dashboard() {
           </div>
           <div className="flex justify-between mt-4">
             <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{stats.activity[0]?.date}</span>
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Today</span>
+            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{stats.activity[stats.activity.length - 1]?.date || 'Today'}</span>
           </div>
         </div>
 
