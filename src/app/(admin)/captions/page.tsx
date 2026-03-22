@@ -22,7 +22,7 @@ async function getCaptions() {
   const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('captions')
-    .select('*, profiles(first_name, last_name), images(url, image_description)')
+    .select('*, profiles!profile_id(first_name, last_name), images(url, image_description)')
     .order('created_datetime_utc', { ascending: false })
     .limit(50)
   
