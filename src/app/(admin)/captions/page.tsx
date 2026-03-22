@@ -1,5 +1,5 @@
 import { createAdminClient } from '@/utils/supabase/admin'
-import { ArrowLeft, MessageSquare, Star, Heart, Database, AlertCircle } from 'lucide-react'
+import { ArrowLeft, MessageSquare, Star, Heart, Database } from 'lucide-react'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -22,7 +22,9 @@ async function getCaptions() {
   const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('captions')
-    .select('*')
+    .select('*, profiles(first_name, last_name), images(url, image_description)')
+    .order('created_datetime_utc', { ascending: false })
+    .limit(50)
   
   if (error) {
     console.error('Error fetching captions:', error)
@@ -47,26 +49,24 @@ export default async function CaptionsPage() {
         </div>
       </div>
 
-      {/* Debug Panel */}
+      {/* Debug Panel - Keeping for final verification */}
       <div className="bg-blue-50 border border-blue-100 rounded-3xl p-6 mb-8">
         <div className="flex items-center gap-3 mb-4 text-blue-800 font-bold">
           <Database className="w-5 h-5" />
-          Captions Debug Info
+          Captions System Status
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
           <div className="bg-white p-4 rounded-2xl shadow-sm">
-            <span className="text-gray-500 block">Total Captions (Count)</span>
-            <span className="text-xl font-black">{debug.count}</span>
-          </div>
-          <div className="bg-white p-4 rounded-2xl shadow-sm">
-            <span className="text-gray-500 block">Service Key Loaded</span>
-            <span className={`text-xl font-black ${debug.keyPresent ? 'text-emerald-500' : 'text-red-500'}`}>
-              {debug.keyPresent ? `Yes (${debug.keySnippet}...)` : 'No'}
-            </span>
+            <span className="text-gray-500 block">Total Captions</span>
+            <span className="text-xl font-black">{debug.count.toLocaleString()}</span>
           </div>
           <div className="bg-white p-4 rounded-2xl shadow-sm">
             <span className="text-gray-500 block">Fetch Status</span>
             <span className="text-xl font-black">{error ? 'Error' : captions.length > 0 ? 'Data Loaded' : 'Empty'}</span>
+          </div>
+          <div className="bg-white p-4 rounded-2xl shadow-sm">
+            <span className="text-gray-500 block">Items Displayed</span>
+            <span className="text-xl font-black">{captions.length}</span>
           </div>
         </div>
         {error && (
@@ -81,17 +81,29 @@ export default async function CaptionsPage() {
           captions.map((caption: any) => (
             <div key={caption.id} className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 flex flex-col md:flex-row gap-8 hover:shadow-md transition-shadow">
               <div className="w-full md:w-48 h-48 bg-gray-100 rounded-2xl overflow-hidden flex-shrink-0 relative">
-                {/* Image will be missing since we aren't joining yet */}
-                <div className="w-full h-full flex items-center justify-center text-gray-400">
-                  <MessageSquare className="w-8 h-8" />
-                </div>
+                {caption.images?.url ? (
+                  <img 
+                    src={caption.images.url} 
+                    alt={caption.images.image_description || 'Related image'} 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-400">
+                    <MessageSquare className="w-8 h-8" />
+                  </div>
+                )}
+                {caption.is_featured && (
+                  <div className="absolute top-2 right-2 bg-amber-400 text-white p-1.5 rounded-full shadow-sm">
+                    <Star className="w-3 h-3 fill-current" />
+                  </div>
+                )}
               </div>
               
               <div className="flex-grow flex flex-col">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-bold text-gray-900 uppercase tracking-tight">
-                      ID: {caption.id.substring(0, 8)}...
+                      By {caption.profiles?.first_name || 'Anonymous'} {caption.profiles?.last_name || ''}
                     </span>
                     <span className="text-gray-300">•</span>
                     <span className="text-xs text-gray-500">
@@ -107,6 +119,15 @@ export default async function CaptionsPage() {
                 <blockquote className="text-2xl font-medium text-gray-900 mb-6 italic">
                   &ldquo;{caption.content}&rdquo;
                 </blockquote>
+                
+                <div className="mt-auto pt-6 border-t border-gray-50 flex flex-wrap gap-2">
+                  {caption.is_public && (
+                    <span className="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider">Public</span>
+                  )}
+                  {caption.humor_flavor_id && (
+                    <span className="bg-purple-50 text-purple-600 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider">Flavor #{caption.humor_flavor_id}</span>
+                  )}
+                </div>
               </div>
             </div>
           ))
