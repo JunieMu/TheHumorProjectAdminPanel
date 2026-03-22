@@ -72,6 +72,12 @@ async function getStats() {
 
 export default async function Dashboard() {
   const stats = await getStats()
+  console.log('Dashboard Stats:', { 
+    activityCount: stats.activity.length, 
+    firstActivity: stats.activity[0],
+    lastActivity: stats.activity[stats.activity.length - 1],
+    activityData: stats.activity 
+  })
 
   return (
     <main className="min-h-screen p-8 max-w-7xl mx-auto">
