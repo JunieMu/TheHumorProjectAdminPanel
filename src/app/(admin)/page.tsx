@@ -263,7 +263,7 @@ export default async function Dashboard() {
               <div className={`${card.color} ${card.text} p-4 rounded-2xl mb-6`}>{card.icon}</div>
               <div className="text-2xl font-black text-gray-900 mb-1">{card.count.toLocaleString()}</div>
               <div className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-6">{card.title}</div>
-              <Link href={card.href} className="mt-auto bg-gray-50 hover:bg-gray-100 text-gray-900 w-full py-3 rounded-xl text-xs font-bold transition-colors uppercase tracking-widest">Configure</Link>
+              <Link href={card.href} className="mt-auto bg-gray-50 hover:bg-gray-100 text-gray-900 w-full py-3 rounded-xl text-xs font-bold transition-colors uppercase tracking-widest">History</Link>
             </div>
           ))}
         </div>
