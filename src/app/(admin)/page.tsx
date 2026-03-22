@@ -9,7 +9,7 @@ import {
   Send, 
   Lightbulb, 
   Cpu,
-  BookOpen,
+  BookOpen, 
   ShieldCheck,
   Globe,
   Mail,
@@ -24,11 +24,7 @@ async function getStats() {
   const supabase = createAdminClient()
   
   // Basic Counts (in parallel)
-  const [
-    userRes, imageRes, captionRes, flavorRes, requestRes, 
-    exampleRes, termRes, domainRes, emailRes, 
-    activityRes, topContributorsRes, totalLikesRes
-  ] = await Promise.all([
+  const results = await Promise.all([
     supabase.from('profiles').select('*', { count: 'exact', head: true }),
     supabase.from('images').select('*', { count: 'exact', head: true }),
     supabase.from('captions').select('*', { count: 'exact', head: true }),
@@ -43,7 +39,13 @@ async function getStats() {
     supabase.rpc('get_total_likes')
   ])
 
-  // Process activity data to ensure numbers
+  const [
+    userRes, imageRes, captionRes, flavorRes, requestRes, 
+    exampleRes, termRes, domainRes, emailRes, 
+    activityRes, topContributorsRes, totalLikesRes
+  ] = results
+
+  // Process activity data to ensure numbers and correct order
   const activity = (activityRes.data as any[] || []).map(day => ({
     date: day.date,
     count: Number(day.count) || 0
@@ -69,6 +71,7 @@ async function getStats() {
 
 export default async function Dashboard() {
   const stats = await getStats()
+  const maxActivity = Math.max(...stats.activity.map(a => a.count), 1)
 
   return (
     <main className="min-h-screen p-8 max-w-7xl mx-auto">
@@ -91,26 +94,32 @@ export default async function Dashboard() {
             <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Last 14 Days</span>
           </div>
           
-          <div className="flex items-end justify-between h-48 gap-3">
-            {stats.activity.map((day, i) => {
-              const max = Math.max(...stats.activity.map(a => a.count), 1)
-              const height = (day.count / max) * 100
+          <div className="flex items-end justify-between h-48 gap-2 px-2">
+            {stats.activity.map((day) => {
+              const height = (day.count / maxActivity) * 100
               return (
-                <div key={day.date} className="flex-grow flex flex-col items-center group relative">
+                <div key={day.date} className="flex-1 flex flex-col items-center group relative h-full justify-end">
                   <div 
-                    style={{ height: `${Math.max(height, 5)}%` }}
-                    className="w-full bg-orange-500 rounded-t-xl opacity-60 group-hover:opacity-100 transition-all duration-500 cursor-help"
+                    style={{ height: `${Math.max(height, 2)}%` }}
+                    className="w-full bg-orange-500 rounded-t-md opacity-80 group-hover:opacity-100 transition-all duration-300 cursor-help shadow-sm min-h-[4px]"
                   />
-                  <div className="absolute -top-10 bg-gray-900 text-white text-[10px] font-black py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
-                    {day.date}: {day.count} requests
+                  <div className="absolute -top-12 bg-gray-900 text-white text-[10px] font-black py-2 px-3 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none shadow-xl border border-white/10">
+                    <div className="text-orange-400 mb-0.5">{day.date}</div>
+                    <div>{day.count} requests</div>
                   </div>
                 </div>
               )
             })}
           </div>
-          <div className="flex justify-between mt-4">
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{stats.activity[0]?.date}</span>
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{stats.activity[stats.activity.length - 1]?.date || 'Today'}</span>
+          <div className="flex justify-between mt-6 pt-4 border-t border-gray-50">
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Timeline Start</span>
+              <span className="text-xs font-bold text-gray-900">{stats.activity[0]?.date}</span>
+            </div>
+            <div className="flex flex-col items-end">
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Latest Activity</span>
+              <span className="text-xs font-bold text-gray-900">{stats.activity[stats.activity.length - 1]?.date}</span>
+            </div>
           </div>
         </div>
 
