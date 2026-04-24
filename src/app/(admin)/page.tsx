@@ -1,22 +1,25 @@
 import { createAdminClient } from '@/utils/supabase/admin'
-import { 
-  Users, 
-  Image as ImageIcon, 
-  MessageSquare, 
-  ArrowRight, 
-  Zap, 
-  SlidersHorizontal, 
-  Send, 
-  Lightbulb, 
+import {
+  Users,
+  Image as ImageIcon,
+  MessageSquare,
+  ArrowRight,
+  Zap,
+  SlidersHorizontal,
+  Send,
+  Lightbulb,
   Cpu,
-  BookOpen, 
+  BookOpen,
   ShieldCheck,
   Globe,
   Mail,
   TrendingUp,
   Award,
   BarChart3,
-  Heart
+  Heart,
+  ThumbsUp,
+  ThumbsDown,
+  Vote
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -36,14 +39,23 @@ async function getStats() {
     supabase.from('whitelist_email_addresses').select('*', { count: 'exact', head: true }),
     supabase.rpc('get_daily_activity', { days_count: 14 }),
     supabase.rpc('get_top_contributors', { limit_count: 3 }),
-    supabase.rpc('get_total_likes')
+    supabase.rpc('get_total_likes'),
+    supabase.from('caption_votes').select('vote_value', { count: 'exact' }),
+    supabase.from('caption_votes').select('vote_value').gt('vote_value', 0),
+    supabase.from('caption_votes').select('vote_value').lt('vote_value', 0),
   ])
 
   const [
-    userRes, imageRes, captionRes, flavorRes, requestRes, 
-    exampleRes, termRes, domainRes, emailRes, 
-    activityRes, topContributorsRes, totalLikesRes
+    userRes, imageRes, captionRes, flavorRes, requestRes,
+    exampleRes, termRes, domainRes, emailRes,
+    activityRes, topContributorsRes, totalLikesRes,
+    totalVotesRes, upvotesRes, downvotesRes,
   ] = results
+
+  const totalVotes = totalVotesRes.count || 0
+  const upvotes = upvotesRes.data?.length || 0
+  const downvotes = downvotesRes.data?.length || 0
+  const approvalRate = totalVotes > 0 ? Math.round((upvotes / totalVotes) * 100) : 0
 
   // Process activity data to ensure numbers and correct order
   const activity = (activityRes.data as any[] || []).map(day => ({
@@ -65,7 +77,11 @@ async function getStats() {
     },
     activity,
     topContributors: (topContributorsRes.data as any[]) || [],
-    totalLikes: Number(totalLikesRes.data) || 0
+    totalLikes: Number(totalLikesRes.data) || 0,
+    totalVotes,
+    upvotes,
+    downvotes,
+    approvalRate,
   }
 }
 
@@ -267,6 +283,48 @@ export default async function Dashboard() {
               <Link href={card.href} className="mt-auto bg-gray-50 hover:bg-gray-100 text-gray-900 w-full py-3 rounded-xl text-xs font-bold transition-colors uppercase tracking-widest">Configure</Link>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Caption Ratings Summary */}
+      <div className="mb-16">
+        <h2 className="text-sm font-black uppercase tracking-widest text-gray-400 mb-8 flex items-center gap-3">
+          <ThumbsUp className="w-4 h-4" />
+          Caption Ratings
+        </h2>
+        <div className="bg-white rounded-[40px] p-10 shadow-sm border border-gray-100">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+            {[
+              { label: 'Total Votes', value: stats.totalVotes.toLocaleString(), icon: <Vote className="w-5 h-5" />, color: 'bg-violet-100', text: 'text-violet-600' },
+              { label: 'Upvotes', value: stats.upvotes.toLocaleString(), icon: <ThumbsUp className="w-5 h-5" />, color: 'bg-emerald-100', text: 'text-emerald-600' },
+              { label: 'Downvotes', value: stats.downvotes.toLocaleString(), icon: <ThumbsDown className="w-5 h-5" />, color: 'bg-rose-100', text: 'text-rose-600' },
+              { label: 'Approval Rate', value: `${stats.approvalRate}%`, icon: <ThumbsUp className="w-5 h-5" />, color: 'bg-blue-100', text: 'text-blue-600' },
+            ].map((stat) => (
+              <div key={stat.label} className="flex items-center gap-4">
+                <div className={`${stat.color} ${stat.text} p-3 rounded-2xl shrink-0`}>{stat.icon}</div>
+                <div>
+                  <div className="text-2xl font-black text-gray-900 tracking-tighter">{stat.value}</div>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-gray-400">{stat.label}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center gap-4 pt-8 border-t border-gray-50">
+            <div className="flex-1 h-3 rounded-full overflow-hidden bg-gray-100 flex">
+              <div
+                className="bg-emerald-400 h-full rounded-l-full transition-all"
+                style={{ width: `${stats.totalVotes > 0 ? (stats.upvotes / stats.totalVotes) * 100 : 50}%` }}
+              />
+              <div className="bg-rose-300 flex-1 h-full rounded-r-full" />
+            </div>
+            <Link
+              href="/ratings"
+              className="shrink-0 bg-gray-900 text-white px-6 py-3 rounded-2xl font-black text-sm flex items-center gap-3 hover:bg-gray-800 transition-colors shadow-lg shadow-gray-200"
+            >
+              Full Report
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
       </div>
 

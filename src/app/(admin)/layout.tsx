@@ -1,5 +1,5 @@
 import SignOutButton from '@/components/SignOutButton'
-import { LayoutDashboard, Users, Image as ImageIcon, MessageSquare, ShieldCheck, FileText, Send, Zap, Sliders, Cpu, BookOpen } from 'lucide-react'
+import { LayoutDashboard, Users, Image as ImageIcon, MessageSquare, ShieldCheck, FileText, Send, Zap, Sliders, Cpu, BookOpen, ThumbsUp } from 'lucide-react'
 import Link from 'next/link'
 
 export default function AdminLayout({
@@ -18,6 +18,7 @@ export default function AdminLayout({
     { href: '/caption-requests', label: 'Requests', icon: Send },
     { href: '/caption-examples', label: 'Examples', icon: FileText },
     { href: '/terms', label: 'Terms', icon: BookOpen },
+    { href: '/ratings', label: 'Ratings', icon: ThumbsUp },
   ]
 
   return (
