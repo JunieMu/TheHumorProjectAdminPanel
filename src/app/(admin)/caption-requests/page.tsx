@@ -87,7 +87,7 @@ export default async function CaptionRequestsPage() {
                   </td>
                   <td className="px-8 py-6 text-right">
                     <span className="text-sm font-medium text-gray-500">
-                      {new Date(req.created_datetime_utc).toLocaleString()}
+                      {req.created_datetime_utc ? new Date(req.created_datetime_utc).toLocaleString() : '—'}
                     </span>
                   </td>
                 </tr>
