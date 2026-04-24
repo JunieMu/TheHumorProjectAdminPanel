@@ -44,11 +44,14 @@ async function getRatingsData() {
   // Votes over time — last 14 days
   const votesPerDay = Array.from({ length: 14 }, (_, i) => {
     const d = new Date()
-    d.setDate(d.getDate() - (13 - i))
+    d.setUTCDate(d.getUTCDate() - (13 - i))
     const date = d.toISOString().split('T')[0]
     return {
       date,
-      count: allVotes.filter((v) => v.created_datetime_utc?.startsWith(date)).length,
+      count: allVotes.filter((v) => {
+        if (!v.created_datetime_utc) return false
+        return new Date(v.created_datetime_utc).toISOString().split('T')[0] === date
+      }).length,
     }
   })
 
