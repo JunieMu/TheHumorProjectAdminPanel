@@ -72,8 +72,9 @@ async function getRatingsData() {
     }))
     .sort((a, b) => b.rate - a.rate)
 
-  // Top 5 captions by like_count
+  // Top 5 captions by like_count (only those with content)
   const topCaptions = [...allCaptions]
+    .filter((c) => c.content)
     .sort((a, b) => (b.like_count || 0) - (a.like_count || 0))
     .slice(0, 5)
 
@@ -107,7 +108,7 @@ async function getRatingsData() {
       const diff = Math.abs(counts.up - counts.down)
       return { id, total, diff, caption: captionMap[id] }
     })
-    .filter((x) => x.total >= 3)
+    .filter((x) => x.total >= 3 && x.caption?.content)
     .sort((a, b) => a.diff - b.diff || b.total - a.total)
     .slice(0, 3)
 
