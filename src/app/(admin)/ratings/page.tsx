@@ -7,10 +7,19 @@ export const dynamic = 'force-dynamic'
 async function getRatingsData() {
   const supabase = createAdminClient()
 
-  const [votesRes, captionsRes, flavorsRes, profilesRes] = await Promise.all([
+  const [
+    totalVotesRes, upvotesRes, downvotesRes,
+    votesRes, captionsRes, flavorsRes, profilesRes,
+  ] = await Promise.all([
+    // Accurate counts — no row data needed
+    supabase.from('caption_votes').select('*', { count: 'exact', head: true }),
+    supabase.from('caption_votes').select('*', { count: 'exact', head: true }).gt('vote_value', 0),
+    supabase.from('caption_votes').select('*', { count: 'exact', head: true }).lt('vote_value', 0),
+    // Most-recent votes first so the 14-day chart always captures current activity
     supabase
       .from('caption_votes')
       .select('vote_value, caption_id, profile_id, created_datetime_utc')
+      .order('created_datetime_utc', { ascending: false })
       .limit(50000),
     supabase
       .from('captions')
@@ -37,10 +46,10 @@ async function getRatingsData() {
     profileMap[p.id] = `${p.first_name || ''} ${p.last_name || ''}`.trim() || 'Anonymous'
   }
 
-  // Summary
-  const totalVotes = allVotes.length
-  const upvotes = allVotes.filter((v) => v.vote_value > 0).length
-  const downvotes = allVotes.filter((v) => v.vote_value < 0).length
+  // True DB counts — not limited by row fetch
+  const totalVotes = totalVotesRes.count ?? 0
+  const upvotes = upvotesRes.count ?? 0
+  const downvotes = downvotesRes.count ?? 0
   const approvalRate = totalVotes > 0 ? Math.round((upvotes / totalVotes) * 100) : 0
 
   // Votes over time — last 14 days
