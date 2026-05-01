@@ -10,12 +10,14 @@ async function getRatingsData() {
   const [votesRes, captionsRes, flavorsRes, profilesRes] = await Promise.all([
     supabase
       .from('caption_votes')
-      .select('vote_value, caption_id, profile_id, created_datetime_utc'),
+      .select('vote_value, caption_id, profile_id, created_datetime_utc')
+      .limit(50000),
     supabase
       .from('captions')
-      .select('id, humor_flavor_id, like_count, content, images!image_id(url)'),
+      .select('id, humor_flavor_id, like_count, content, images!image_id(url)')
+      .limit(50000),
     supabase.from('humor_flavors').select('id, slug'),
-    supabase.from('profiles').select('id, first_name, last_name'),
+    supabase.from('profiles').select('id, first_name, last_name').limit(10000),
   ])
 
   const allVotes = (votesRes.data || []) as any[]

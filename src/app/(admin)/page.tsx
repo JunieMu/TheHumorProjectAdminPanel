@@ -40,9 +40,9 @@ async function getStats() {
     supabase.rpc('get_daily_activity', { days_count: 14 }),
     supabase.rpc('get_top_contributors', { limit_count: 3 }),
     supabase.rpc('get_total_likes'),
-    supabase.from('caption_votes').select('vote_value', { count: 'exact' }),
-    supabase.from('caption_votes').select('vote_value').gt('vote_value', 0),
-    supabase.from('caption_votes').select('vote_value').lt('vote_value', 0),
+    supabase.from('caption_votes').select('*', { count: 'exact', head: true }),
+    supabase.from('caption_votes').select('*', { count: 'exact', head: true }).gt('vote_value', 0),
+    supabase.from('caption_votes').select('*', { count: 'exact', head: true }).lt('vote_value', 0),
   ])
 
   const [
@@ -53,8 +53,8 @@ async function getStats() {
   ] = results
 
   const totalVotes = totalVotesRes.count || 0
-  const upvotes = upvotesRes.data?.length || 0
-  const downvotes = downvotesRes.data?.length || 0
+  const upvotes = upvotesRes.count || 0
+  const downvotes = downvotesRes.count || 0
   const approvalRate = totalVotes > 0 ? Math.round((upvotes / totalVotes) * 100) : 0
 
   // Process activity data to ensure numbers and correct order
